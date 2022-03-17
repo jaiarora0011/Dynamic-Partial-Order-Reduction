@@ -7,5 +7,5 @@ parse.tab.cpp parse.tab.hpp: parse.y
 lex.lex.cpp: lex.l parse.tab.hpp
 	flex -o lex.lex.cpp -l lex.l
 
-clean::
+clean:
 	rm -f parse.tab.cpp parse.tab.hpp lex.lex.cpp main

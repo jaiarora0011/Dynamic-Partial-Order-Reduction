@@ -1,6 +1,7 @@
 %{
 #include <cstdio>
 #include <iostream>
+#include "program.h"
 using namespace std;
 
 // stuff from flex that bison needs to know about:

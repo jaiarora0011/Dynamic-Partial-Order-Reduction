@@ -3,11 +3,13 @@
 #include <string>
 #include <fstream>
 #include <assert.h>
+#include "program.h"
 #include "parse.tab.hpp"
 
 extern "C" int yylex();
 int yyparse();
 extern "C" FILE *yyin;
+extern "C" concurrent_procs* parsed;
 
 using namespace std;
 
