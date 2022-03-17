@@ -3,19 +3,33 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_set>
+#include <vector>
+#include <sstream>
+#include "util.h"
 
 using namespace std;
 
 class instruction
 {
-private:
+protected:
   string m_label;
 public:
+  instruction()
+  { }
   instruction(string label) : m_label(label)
   { }
+
+  virtual void setLabel(string label)
+  { }
+
+  virtual string dump_string()
+  {
+    return "";
+  }
 };
 
-class assignment_instruction : instruction
+class assignment_instruction : public instruction
 {
 private:
   string m_left;
@@ -24,36 +38,94 @@ private:
   bool m_is_constant;
 
 public:
-  assignment_instruction(string label, string left, string right)
-    : instruction(label), m_left(left), m_right_var(right)
+  assignment_instruction(string left, string right)
+    : m_left(left), m_right_var(right)
   {
     m_is_constant = false;
   }
 
-  assignment_instruction(string label, string left, int right)
-    : instruction(label), m_left(left), m_right_val(right)
+  assignment_instruction(string left, int right)
+    : m_left(left), m_right_val(right)
   {
     m_is_constant = true;
   }
 
+  void setLabel(string label) override
+  {
+    m_label = label;
+  }
+
+  string dump_string() override
+  {
+    stringstream ss;
+    ss << m_left << " := ";
+    if (m_is_constant) {
+      ss << m_right_val;
+    } else {
+      ss << m_right_var;
+    }
+    return ss.str();
+  }
+
 };
 
-class mutex_instuction : instruction
+class mutex_instruction : public instruction
 {
 private:
   string m_mutex_var;
   bool m_is_acquire;
 
 public:
-  mutex_instuction(string label, string var, string mode)
-    : instruction(label), m_mutex_var(var)
+  mutex_instruction(string var, string mode)
+    : m_mutex_var(var)
   {
-    if (mode != "release" || mode != "acquire") {
-      throw "Unidentified mutex mode";
-    }
     m_is_acquire = mode == "acquire";
   }
 
+  void setLabel(string label) override
+  {
+    m_label = label;
+  }
+
+  string dump_string() override
+  {
+    stringstream ss;
+    if (m_is_acquire) {
+      ss << "acquire(";
+    } else {
+      ss << "release(";
+    }
+    ss << m_mutex_var << ")";
+    return ss.str();
+  }
+
+};
+
+class po_rel
+{
+private:
+  unordered_set<pair<string, string>, hash<pair<string, string>>> m_pairset;
+public:
+  po_rel() : m_pairset()
+  { }
+
+  po_rel(unordered_set<pair<string, string>> set) : m_pairset(set)
+  { }
+
+  po_rel(vector<pair<string, string>> vec) : m_pairset(vec.begin(), vec.end())
+  { }
+
+  void addPair(string l1, string l2)
+  {
+    m_pairset.insert(make_pair(l1, l2));
+  }
+
+  void relation_union(po_rel other)
+  {
+    for (auto p : other.m_pairset) {
+      m_pairset.insert(p);
+    }
+  }
 };
 
 #endif

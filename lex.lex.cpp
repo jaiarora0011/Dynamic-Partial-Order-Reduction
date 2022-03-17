@@ -512,6 +512,7 @@ char *yytext_ptr;
 #line 9 "lex.l"
 #include <stdio.h>
 #include <string.h>
+#include "program.h"
 #include "parse.tab.hpp"
 
 extern void yyerror(const char *);  /* prints grammar violation message */
@@ -519,8 +520,8 @@ extern void yyerror(const char *);  /* prints grammar violation message */
 static void comment(void);
 static int check_type(void);
 #define YY_DECL extern "C" int yylex()
-#line 523 "lex.lex.cpp"
 #line 524 "lex.lex.cpp"
+#line 525 "lex.lex.cpp"
 
 #define INITIAL 0
 
@@ -737,9 +738,9 @@ YY_DECL
 		}
 
 	{
-#line 20 "lex.l"
+#line 21 "lex.l"
 
-#line 743 "lex.lex.cpp"
+#line 744 "lex.lex.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -808,96 +809,96 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 21 "lex.l"
+#line 22 "lex.l"
 { comment(); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 22 "lex.l"
+#line 23 "lex.l"
 { /* consume //-comment */ }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 24 "lex.l"
+#line 25 "lex.l"
 { return PO; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 25 "lex.l"
+#line 26 "lex.l"
 { return RELEASE; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 26 "lex.l"
+#line 27 "lex.l"
 { return ACQUIRE; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 28 "lex.l"
+#line 29 "lex.l"
 { yylval.stringVal = strdup(yytext); return IDENTIFIER; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 30 "lex.l"
+#line 31 "lex.l"
 { yylval.intVal = atoi(yytext); return I_CONSTANT; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 32 "lex.l"
+#line 33 "lex.l"
 { return ';'; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 33 "lex.l"
+#line 34 "lex.l"
 { return '{'; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 34 "lex.l"
+#line 35 "lex.l"
 { return '}'; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 35 "lex.l"
+#line 36 "lex.l"
 { return ','; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 36 "lex.l"
+#line 37 "lex.l"
 { return ':'; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 37 "lex.l"
+#line 38 "lex.l"
 { return ASSIGN; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 38 "lex.l"
+#line 39 "lex.l"
 { return '('; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 39 "lex.l"
+#line 40 "lex.l"
 { return ')'; }
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 42 "lex.l"
+#line 43 "lex.l"
 { /* whitespace separates tokens */ }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 43 "lex.l"
+#line 44 "lex.l"
 { /* discard bad characters */ }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 45 "lex.l"
+#line 46 "lex.l"
 ECHO;
 	YY_BREAK
-#line 901 "lex.lex.cpp"
+#line 902 "lex.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1914,7 +1915,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 45 "lex.l"
+#line 46 "lex.l"
 
 
 int yywrap(void)        /* called at end of input */

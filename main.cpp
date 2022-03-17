@@ -26,6 +26,7 @@ main(int argc, char **argv)
   assert(yyin);
   int ret = yyparse();
   printf("retv = %d\n", ret);
+  assert(parsed);
 
   return 0;
 }

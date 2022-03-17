@@ -1,6 +1,8 @@
 %{
 #include <cstdio>
 #include <iostream>
+#include <vector>
+#include <unordered_set>
 #include "program.h"
 using namespace std;
 
@@ -8,6 +10,7 @@ using namespace std;
 extern "C" int yylex();
 int yyparse();
 extern "C" FILE *yyin;
+concurrent_procs* parsed = NULL;
  
 void yyerror(const char *s);
 %}
@@ -16,70 +19,66 @@ void yyerror(const char *s);
 %union{
 	char* stringVal;
 	int intVal;
+  instruction* ins;
+  assignment_instruction* assignIns;
+  mutex_instruction* mutexIns;
+  process* proc;
+  concurrent_procs* concProcs;
+  po_rel* po;
 }
 
 %token <intVal>	I_CONSTANT
-%token <stringVal>	IDENTIFIER
-%token	ASSIGN PO RELEASE ACQUIRE
+%token <stringVal>	IDENTIFIER RELEASE ACQUIRE
+%token	ASSIGN PO
 
-// %nterm <node> primary_expression constant string expression postfix_expression unary_expression
-// %nterm <node> cast_expression multiplicative_expression additive_expression shift_expression
-// %nterm <node> relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression
-// %nterm <node> logical_and_expression logical_or_expression conditional_expression assignment_expression
-// %nterm <node> type_specifier declaration_specifiers declarator parameter_type_list parameter_list direct_declarator
-// %nterm <node> parameter_declaration expression_statement compound_statement block_item_list block_item
-// %nterm <node> declaration statement translation_unit external_declaration function_definition
-// %nterm <node> selection_statement iteration_statement jump_statement assignment_operator
-// %nterm <node> init_declarator_list init_declarator initializer argument_expression_list type_qualifier
-// %nterm <node> pointer
+%nterm <concProcs> start_sym program_list
+%nterm <proc> program instruction_list
+%nterm <ins> instruction ins_
+%nterm <po> program_order_relation pair_list s_pair
 
 %start start_sym
 %%
 
 start_sym
-  : program_list program_order_relation
+  : program_list program_order_relation { $1->set_po_rel(*$2); $$ = $1; parsed = $$; }
   ;
 
 program_list
-  : program
-  | program_list program
+  : program { $$ = new concurrent_procs({*$1}); }
+  | program_list program  { $1->addProgram(*$2); $$ = $1; }
   ;
 
 program
-  : IDENTIFIER '{' instruction_list '}'
+  : IDENTIFIER '{' instruction_list '}' { $3->setProcessLabel($1); $$ = $3; }
   ;
 
 instruction_list
-  : instruction
-  | instruction_list instruction
+  : instruction { $$ = new process({*$1}); }
+  | instruction_list instruction  {$1->addInstruction(*$2); $$ = $1; }
   ;
 
 instruction
-  : IDENTIFIER ':' ins
+  : IDENTIFIER ':' ins_  { $3->setLabel($1); $$ = $3; }
   ;
 
-ins
-  : IDENTIFIER ASSIGN expression
-  | RELEASE '(' IDENTIFIER ')'
-  | ACQUIRE '(' IDENTIFIER ')'
-  ;
-
-expression
-  : I_CONSTANT
-  | IDENTIFIER
+ins_
+  : IDENTIFIER ASSIGN I_CONSTANT  { $$ = new assignment_instruction($1, $3); }
+  | IDENTIFIER ASSIGN IDENTIFIER  { $$ = new assignment_instruction($1, $3); }
+  | RELEASE '(' IDENTIFIER ')'  { $$ = new mutex_instruction($3, $1); }
+  | ACQUIRE '(' IDENTIFIER ')'  { $$ = new mutex_instruction($3, $1); }
   ;
 
 program_order_relation
-  : PO ':' '{' pair_list '}'
+  : PO ':' '{' pair_list '}'  { $$ = $4; }
   ;
 
 pair_list
-  : pair
-  | pair_list ',' pair
+  : s_pair  { $$ = $1; }
+  | pair_list ',' s_pair  { $1->relation_union(*$3); $$ = $1; }
   ;
 
-pair
-  : '(' IDENTIFIER ',' IDENTIFIER ')'
+s_pair
+  : '(' IDENTIFIER ',' IDENTIFIER ')' {$$ = new po_rel(); $$->addPair($2, $4); }
   ;
 
 %%

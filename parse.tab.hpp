@@ -51,10 +51,10 @@ extern int yydebug;
   {
     I_CONSTANT = 258,
     IDENTIFIER = 259,
-    ASSIGN = 260,
-    PO = 261,
-    RELEASE = 262,
-    ACQUIRE = 263
+    RELEASE = 260,
+    ACQUIRE = 261,
+    ASSIGN = 262,
+    PO = 263
   };
 #endif
 
@@ -62,12 +62,18 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 15 "parse.y"
+#line 19 "parse.y"
 
 	char* stringVal;
 	int intVal;
+  instruction* ins;
+  assignment_instruction* assignIns;
+  mutex_instruction* mutexIns;
+  process* proc;
+  concurrent_procs* concProcs;
+  po_rel* po;
 
-#line 71 "parse.tab.hpp"
+#line 77 "parse.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
