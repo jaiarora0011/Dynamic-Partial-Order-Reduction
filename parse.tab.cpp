@@ -133,10 +133,10 @@ extern int yydebug;
   {
     I_CONSTANT = 258,
     IDENTIFIER = 259,
-    RELEASE = 260,
-    ACQUIRE = 261,
-    ASSIGN = 262,
-    PO = 263
+    ASSIGN = 260,
+    PO = 261,
+    RELEASE = 262,
+    ACQUIRE = 263
   };
 #endif
 
@@ -474,7 +474,7 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  6
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   35
+#define YYLAST   36
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  15
@@ -541,8 +541,8 @@ static const yytype_int8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "I_CONSTANT", "IDENTIFIER", "RELEASE",
-  "ACQUIRE", "ASSIGN", "PO", "'{'", "'}'", "':'", "'('", "')'", "','",
+  "$end", "error", "$undefined", "I_CONSTANT", "IDENTIFIER", "ASSIGN",
+  "PO", "RELEASE", "ACQUIRE", "'{'", "'}'", "':'", "'('", "')'", "','",
   "$accept", "start_sym", "program_list", "program", "instruction_list",
   "instruction", "ins_", "program_order_relation", "pair_list", "s_pair", YY_NULLPTR
 };
@@ -572,9 +572,9 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -2,    -5,    13,    -3,    -8,    10,    -8,     5,    -8,    -8,
-       6,    -4,    -8,     9,     4,    -8,    -8,     3,    12,    11,
-      14,    -8,    16,    -7,    -8,     8,    17,    18,    15,    -8,
+      -2,     0,    13,     4,    -8,    10,    -8,     5,    -8,    -8,
+       6,    -4,    -8,     9,    -3,    -8,    -8,     3,    14,    11,
+      12,    -8,    16,    -7,    -8,     8,    17,    18,    15,    -8,
        3,    -8,    -8,    19,    20,    21,    -8,    -8,    -8,    22,
       -8
 };
@@ -594,7 +594,7 @@ static const yytype_int8 yydefact[] =
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -8,    -8,    -8,    24,    -8,    23,    -8,    -8,    -8,    -6
+      -8,    -8,    -8,    23,    -8,    25,    -8,    -8,    -8,     1
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
@@ -608,27 +608,27 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      10,     1,     1,    29,     5,     7,    15,    30,    18,    19,
-      20,    31,    32,     6,    10,    22,    13,    14,    17,    25,
-      28,    33,    34,    26,    36,    39,    27,     8,     0,    35,
-       0,     0,    37,    38,    16,    40
+      10,    18,     1,    29,    19,    20,    15,    30,     1,     5,
+       7,    31,    32,     6,    10,    22,    13,    14,    17,    25,
+      28,    33,    34,    26,    27,    39,     8,     0,     0,    35,
+       0,    36,    37,    38,     0,    40,    16
 };
 
 static const yytype_int8 yycheck[] =
 {
-       4,     4,     4,    10,     9,     8,    10,    14,     4,     5,
-       6,     3,     4,     0,     4,    12,    11,    11,     9,     7,
-       4,     4,     4,    12,    30,     4,    12,     3,    -1,    14,
-      -1,    -1,    13,    13,    11,    13
+       4,     4,     4,    10,     7,     8,    10,    14,     4,     9,
+       6,     3,     4,     0,     4,    12,    11,    11,     9,     5,
+       4,     4,     4,    12,    12,     4,     3,    -1,    -1,    14,
+      -1,    30,    13,    13,    -1,    13,    11
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     4,    16,    17,    18,     9,     0,     8,    18,    22,
-       4,    19,    20,    11,    11,    10,    20,     9,     4,     5,
-       6,    21,    12,    23,    24,     7,    12,    12,     4,    10,
+       0,     4,    16,    17,    18,     9,     0,     6,    18,    22,
+       4,    19,    20,    11,    11,    10,    20,     9,     4,     7,
+       8,    21,    12,    23,    24,     5,    12,    12,     4,    10,
       14,     3,     4,     4,     4,    14,    24,    13,    13,     4,
       13
 };
@@ -1341,7 +1341,7 @@ yyreduce:
     {
   case 2:
 #line 43 "parse.y"
-                                        { (yyvsp[-1].concProcs)->set_po_rel(*(yyvsp[0].po)); (yyval.concProcs) = (yyvsp[-1].concProcs); parsed = (yyval.concProcs); }
+                                        { (yyvsp[-1].concProcs)->set_program_order(*(yyvsp[0].po)); (yyval.concProcs) = (yyvsp[-1].concProcs); parsed = (yyval.concProcs); }
 #line 1346 "parse.tab.cpp"
     break;
 
@@ -1365,13 +1365,13 @@ yyreduce:
 
   case 6:
 #line 56 "parse.y"
-                { (yyval.proc) = new process({*(yyvsp[0].ins)}); }
+                { (yyval.proc) = new process({(yyvsp[0].ins)}); }
 #line 1370 "parse.tab.cpp"
     break;
 
   case 7:
 #line 57 "parse.y"
-                                  {(yyvsp[-1].proc)->addInstruction(*(yyvsp[0].ins)); (yyval.proc) = (yyvsp[-1].proc); }
+                                  {(yyvsp[-1].proc)->addInstruction((yyvsp[0].ins)); (yyval.proc) = (yyvsp[-1].proc); }
 #line 1376 "parse.tab.cpp"
     break;
 
@@ -1395,13 +1395,13 @@ yyreduce:
 
   case 11:
 #line 67 "parse.y"
-                                { (yyval.ins) = new mutex_instruction((yyvsp[-1].stringVal), (yyvsp[-3].stringVal)); }
+                                { (yyval.ins) = new mutex_instruction((yyvsp[-1].stringVal), false); }
 #line 1400 "parse.tab.cpp"
     break;
 
   case 12:
 #line 68 "parse.y"
-                                { (yyval.ins) = new mutex_instruction((yyvsp[-1].stringVal), (yyvsp[-3].stringVal)); }
+                                { (yyval.ins) = new mutex_instruction((yyvsp[-1].stringVal), true); }
 #line 1406 "parse.tab.cpp"
     break;
 

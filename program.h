@@ -13,20 +13,20 @@ class process
 {
 private:
   string m_process_label;
-  vector<instruction> m_list;
+  vector<instruction*> m_list;
 public:
   process(string label) : m_process_label(label)
   { }
 
-  process(string label, vector<instruction> ins_list)
+  process(string label, vector<instruction*> const& ins_list)
     : m_process_label(label), m_list(ins_list)
   { }
 
-  process(vector<instruction> ins_list)
+  process(vector<instruction*> const& ins_list)
     : m_list(ins_list)
   { }
 
-  void addInstruction(instruction other)
+  void addInstruction(instruction* const& other)
   {
     m_list.push_back(other);
   }
@@ -34,6 +34,16 @@ public:
   void setProcessLabel(string label)
   {
     m_process_label = label;
+  }
+
+  string dump_string() const
+  {
+    stringstream ss;
+    ss << m_process_label << ":\n";
+    for (auto const& ins : m_list) {
+      ss << "\t" << ins->dump_string() << "\n";
+    }
+    return ss.str();
   }
 };
 
@@ -56,7 +66,7 @@ public:
     : m_procs(processes), m_program_order(po)
   { }
 
-  void set_po_rel(po_rel p)
+  void set_program_order(po_rel p)
   {
     m_program_order = p;
   }
@@ -64,6 +74,18 @@ public:
   void addProgram(process other)
   {
     m_procs.push_back(other);
+  }
+
+  string dump_string()
+  {
+    stringstream ss;
+    for (auto const& proc : m_procs) {
+      ss << proc.dump_string() << "\n\n";
+    }
+    ss << "PROGRAM_ORDER: \n";
+    ss << m_program_order.dump_string(); 
+
+    return ss.str();
   }
 };
 

@@ -21,9 +21,11 @@ public:
   { }
 
   virtual void setLabel(string label)
-  { }
+  {
+    m_label = label;
+  }
 
-  virtual string dump_string()
+  virtual string dump_string() const
   {
     return "";
   }
@@ -50,15 +52,15 @@ public:
     m_is_constant = true;
   }
 
-  void setLabel(string label) override
+  void setLabel(string label)
   {
     m_label = label;
   }
 
-  string dump_string() override
+  string dump_string() const override
   {
     stringstream ss;
-    ss << m_left << " := ";
+    ss << m_label << ": " << m_left << " := ";
     if (m_is_constant) {
       ss << m_right_val;
     } else {
@@ -76,20 +78,21 @@ private:
   bool m_is_acquire;
 
 public:
-  mutex_instruction(string var, string mode)
+  mutex_instruction(string var, bool mode)
     : m_mutex_var(var)
   {
-    m_is_acquire = mode == "acquire";
+    m_is_acquire = mode;
   }
 
-  void setLabel(string label) override
+  void setLabel(string label)
   {
     m_label = label;
   }
 
-  string dump_string() override
+  string dump_string() const override
   {
     stringstream ss;
+    ss << m_label << ": ";
     if (m_is_acquire) {
       ss << "acquire(";
     } else {
@@ -125,6 +128,22 @@ public:
     for (auto p : other.m_pairset) {
       m_pairset.insert(p);
     }
+  }
+
+  string dump_string() const
+  {
+    stringstream ss;
+    ss << "{";
+    int i = 0;
+    for (auto const& p : m_pairset) {
+      if (i != 0) {
+        ss << ", ";
+      }
+      ss << "(" << p.first << ", " << p.second << ")";
+      ++i;
+    }
+    ss << "}";
+    return ss.str();
   }
 };
 

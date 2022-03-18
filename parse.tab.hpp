@@ -51,10 +51,10 @@ extern int yydebug;
   {
     I_CONSTANT = 258,
     IDENTIFIER = 259,
-    RELEASE = 260,
-    ACQUIRE = 261,
-    ASSIGN = 262,
-    PO = 263
+    ASSIGN = 260,
+    PO = 261,
+    RELEASE = 262,
+    ACQUIRE = 263
   };
 #endif
 

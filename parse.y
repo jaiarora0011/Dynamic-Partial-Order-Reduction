@@ -28,8 +28,8 @@ void yyerror(const char *s);
 }
 
 %token <intVal>	I_CONSTANT
-%token <stringVal>	IDENTIFIER RELEASE ACQUIRE
-%token	ASSIGN PO
+%token <stringVal>	IDENTIFIER
+%token	ASSIGN PO RELEASE ACQUIRE
 
 %nterm <concProcs> start_sym program_list
 %nterm <proc> program instruction_list
@@ -40,7 +40,7 @@ void yyerror(const char *s);
 %%
 
 start_sym
-  : program_list program_order_relation { $1->set_po_rel(*$2); $$ = $1; parsed = $$; }
+  : program_list program_order_relation { $1->set_program_order(*$2); $$ = $1; parsed = $$; }
   ;
 
 program_list
@@ -53,8 +53,8 @@ program
   ;
 
 instruction_list
-  : instruction { $$ = new process({*$1}); }
-  | instruction_list instruction  {$1->addInstruction(*$2); $$ = $1; }
+  : instruction { $$ = new process({$1}); }
+  | instruction_list instruction  {$1->addInstruction($2); $$ = $1; }
   ;
 
 instruction
@@ -64,8 +64,8 @@ instruction
 ins_
   : IDENTIFIER ASSIGN I_CONSTANT  { $$ = new assignment_instruction($1, $3); }
   | IDENTIFIER ASSIGN IDENTIFIER  { $$ = new assignment_instruction($1, $3); }
-  | RELEASE '(' IDENTIFIER ')'  { $$ = new mutex_instruction($3, $1); }
-  | ACQUIRE '(' IDENTIFIER ')'  { $$ = new mutex_instruction($3, $1); }
+  | RELEASE '(' IDENTIFIER ')'  { $$ = new mutex_instruction($3, false); }
+  | ACQUIRE '(' IDENTIFIER ')'  { $$ = new mutex_instruction($3, true); }
   ;
 
 program_order_relation

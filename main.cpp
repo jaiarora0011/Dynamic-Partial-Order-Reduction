@@ -27,6 +27,7 @@ main(int argc, char **argv)
   int ret = yyparse();
   printf("retv = %d\n", ret);
   assert(parsed);
+  cout << parsed->dump_string() << endl;
 
   return 0;
 }
