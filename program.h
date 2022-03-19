@@ -13,13 +13,13 @@ using namespace std;
 class process
 {
 private:
-  string m_process_label;
+  label m_process_label;
   vector<instruction*> m_list;
 public:
-  process(string label) : m_process_label(label)
+  process(label label) : m_process_label(label)
   { }
 
-  process(string label, vector<instruction*> const& ins_list)
+  process(label label, vector<instruction*> const& ins_list)
     : m_process_label(label), m_list(ins_list)
   { }
 
@@ -27,25 +27,13 @@ public:
     : m_list(ins_list)
   { }
 
-  void add_instruction(instruction* const& other)
-  {
-    m_list.push_back(other);
-  }
+  void add_instruction(instruction* const& other) { m_list.push_back(other); }
 
-  void set_process_label(string label)
-  {
-    m_process_label = label;
-  }
+  void set_process_label(label label) { m_process_label = label; }
 
-  string get_process_label()
-  {
-    return m_process_label;
-  }
+  label get_process_label() { return m_process_label; }
 
-  vector<instruction*> get_instruction_list()
-  {
-    return m_list;
-  }
+  vector<instruction*> get_instruction_list() { return m_list; }
 
   void sync_process_label_across_instructions()
   {
@@ -68,20 +56,16 @@ public:
 class concurrent_procs
 {
 private:
-  unordered_map<string, process*> m_procs;
+  unordered_map<label, process*> m_procs;
   binary_label_relation m_program_order;
   binary_label_relation m_dependancy_relation;
-  unordered_map<string, string> m_instruction_to_process_map;
 
 public:
   concurrent_procs()
     : m_procs(), m_program_order()
   { }
 
-  void set_program_order(binary_label_relation const& p)
-  {
-    m_program_order = p;
-  }
+  void set_program_order(binary_label_relation const& p) { m_program_order = p; }
 
   void add_program(process* const& other)
   {

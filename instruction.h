@@ -15,23 +15,26 @@ enum instruction_type {
   mutex
 };
 
+using variable = string;
+using label = string;
+
 class process;
 class instruction
 {
 protected:
-  string m_label;
-  string m_process_id;
+  label m_label;
+  label m_process_id;
   instruction_type m_type;
 public:
   instruction()
   { }
-  instruction(string label) : m_label(label)
+  instruction(label label) : m_label(label)
   { }
 
-  void set_label(string label) { m_label = label; }
-  string get_instruction_label() { return m_label; }
-  void set_process_id(string const& proc) { m_process_id = proc; }
-  string get_process_id() { return m_process_id; }
+  void set_label(label label) { m_label = label; }
+  label get_instruction_label() { return m_label; }
+  void set_process_id(label proc) { m_process_id = proc; }
+  label get_process_id() { return m_process_id; }
   instruction_type get_instruction_type() { return m_type; }
 
   virtual string dump_string() const { return ""; }
@@ -40,19 +43,19 @@ public:
 class assignment_instruction : public instruction
 {
 private:
-  string m_left;
-  string m_right_var;
+  variable m_left;
+  variable m_right_var;
   int m_right_val;
   bool m_is_constant;
 
 public:
-  assignment_instruction(string left, string right)
+  assignment_instruction(variable left, variable right)
     : m_left(left), m_right_var(right), m_is_constant(false)
   {
     m_type = assignment;
   }
 
-  assignment_instruction(string left, int right)
+  assignment_instruction(variable left, int right)
     : m_left(left), m_right_val(right), m_is_constant(true)
   {
     m_type = assignment;
@@ -93,15 +96,18 @@ public:
 class mutex_instruction : public instruction
 {
 private:
-  string m_mutex_var;
+  variable m_mutex_var;
   bool m_is_acquire;
 
 public:
-  mutex_instruction(string var, bool mode)
+  mutex_instruction(variable var, bool mode)
     : m_mutex_var(var), m_is_acquire(mode)
   {
     m_type = mutex;
   }
+
+  variable get_mutex_var() { return m_mutex_var; }
+  bool is_acquire() {return m_is_acquire; }
 
   bool are_dependant(mutex_instruction* const& other)
   {
@@ -128,20 +134,20 @@ public:
 class binary_label_relation
 {
 private:
-  unordered_set<pair<string, string>, hash<pair<string, string>>> m_set;
+  unordered_set<pair<label, label>, hash<pair<label, label>>> m_set;
 public:
   binary_label_relation() : m_set()
   { }
 
-  binary_label_relation(unordered_set<pair<string, string>> const& set)
+  binary_label_relation(unordered_set<pair<label, label>> const& set)
     : m_set(set)
   { }
 
-  binary_label_relation(vector<pair<string, string>> const& vec)
+  binary_label_relation(vector<pair<label, label>> const& vec)
     : m_set(vec.begin(), vec.end())
   { }
 
-  void add_pair(string l1, string l2) { m_set.insert(make_pair(l1, l2)); }
+  void add_pair(label l1, label l2) { m_set.insert(make_pair(l1, l2)); }
 
   int size() { return m_set.size(); }
 

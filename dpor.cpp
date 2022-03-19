@@ -1,5 +1,4 @@
 #include "dpor.h"
-#include <assert.h>
 
 using namespace std;
 
@@ -81,4 +80,50 @@ concurrent_procs::compute_dependancy_relation()
   m_dependancy_relation.relation_union(m_program_order);
 
   return m_dependancy_relation;
+}
+
+instruction*
+state::get_process_next_transition(process* const& proc)
+{
+  int pc = m_loc_state[proc->get_process_label()];
+  if (pc >= proc->get_instruction_list().size()) {
+    return NULL;
+  } else {
+    return proc->get_instruction_list()[pc];
+  }
+}
+
+unordered_set<process*>
+state::get_enabled_set(unordered_map<label, process*> const& all_procs)
+{
+  unordered_set<process*> ret;
+  for (auto const& p : all_procs) {
+    auto ins = get_process_next_transition(p.second);
+    if (ins == NULL) {
+      continue;
+    }
+    // A mutex instruction may get blocked
+    if (ins->get_instruction_type() == mutex) {
+      auto mut = dynamic_cast<mutex_instruction*>(ins);
+      assert(mut);
+      auto status = m_mutex_state[mut->get_mutex_var()];
+      if (status.first == locked) {
+        if (status.second != p.first) {
+          // Another process cannot operate on a lock owned by a different process
+          continue;
+        } else if (mut->is_acquire()) {
+          // cannot call acquire on an already acquired lock
+          continue;
+        }
+      } else {
+        // cannot call release on an unlocked mutex
+        if (!mut->is_acquire()) {
+          continue;
+        }
+      }
+    }
+    ret.insert(p.second);
+  }
+
+  return ret;
 }
