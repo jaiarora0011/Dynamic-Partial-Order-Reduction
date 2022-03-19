@@ -24,7 +24,7 @@ void yyerror(const char *s);
   mutex_instruction* mutexIns;
   process* proc;
   concurrent_procs* concProcs;
-  po_rel* po;
+  binary_label_relation* po;
 }
 
 %token <intVal>	I_CONSTANT
@@ -44,21 +44,21 @@ start_sym
   ;
 
 program_list
-  : program { $$ = new concurrent_procs({*$1}); }
-  | program_list program  { $1->addProgram(*$2); $$ = $1; }
+  : program { $$ = new concurrent_procs(); $$->add_program($1); }
+  | program_list program  { $1->add_program($2); $$ = $1; }
   ;
 
 program
-  : IDENTIFIER '{' instruction_list '}' { $3->setProcessLabel($1); $$ = $3; }
+  : IDENTIFIER '{' instruction_list '}' { $3->set_process_label($1); $$ = $3; }
   ;
 
 instruction_list
   : instruction { $$ = new process({$1}); }
-  | instruction_list instruction  {$1->addInstruction($2); $$ = $1; }
+  | instruction_list instruction  {$1->add_instruction($2); $$ = $1; }
   ;
 
 instruction
-  : IDENTIFIER ':' ins_  { $3->setLabel($1); $$ = $3; }
+  : IDENTIFIER ':' ins_  { $3->set_label($1); $$ = $3; }
   ;
 
 ins_
@@ -74,11 +74,11 @@ program_order_relation
 
 pair_list
   : s_pair  { $$ = $1; }
-  | pair_list ',' s_pair  { $1->relation_union(*$3); $$ = $1; }
+  | pair_list ',' s_pair  { $1->relation_union($3); $$ = $1; }
   ;
 
 s_pair
-  : '(' IDENTIFIER ',' IDENTIFIER ')' {$$ = new po_rel(); $$->addPair($2, $4); }
+  : '(' IDENTIFIER ',' IDENTIFIER ')' {$$ = new binary_label_relation(); $$->add_pair($2, $4); }
   ;
 
 %%

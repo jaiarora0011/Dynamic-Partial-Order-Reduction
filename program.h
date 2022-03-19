@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 #include "util.h"
 #include "instruction.h"
 
@@ -26,14 +27,24 @@ public:
     : m_list(ins_list)
   { }
 
-  void addInstruction(instruction* const& other)
+  void add_instruction(instruction* const& other)
   {
     m_list.push_back(other);
   }
 
-  void setProcessLabel(string label)
+  void set_process_label(string label)
   {
     m_process_label = label;
+  }
+
+  string get_process_label()
+  {
+    return m_process_label;
+  }
+
+  vector<instruction*> get_instruction_list()
+  {
+    return m_list;
   }
 
   string dump_string() const
@@ -50,42 +61,51 @@ public:
 class concurrent_procs
 {
 private:
-  vector<process> m_procs;
-  po_rel m_program_order;
+  unordered_map<string, process*> m_procs;
+  binary_label_relation m_program_order;
 
 public:
-  concurrent_procs(vector<process> processes)
-    : m_procs(processes), m_program_order()
+  concurrent_procs()
+    : m_procs(), m_program_order()
   { }
 
-  concurrent_procs(vector<process> processes, unordered_set<pair<string, string>> po)
-    : m_procs(processes), m_program_order(po)
-  { }
-
-  concurrent_procs(vector<process> processes, vector<pair<string, string>> po)
-    : m_procs(processes), m_program_order(po)
-  { }
-
-  void set_program_order(po_rel p)
+  void set_program_order(binary_label_relation const& p)
   {
     m_program_order = p;
   }
 
-  void addProgram(process other)
+  void add_program(process* const& other)
   {
-    m_procs.push_back(other);
+    if (m_procs.count(other->get_process_label())) {
+      throw "All processes should have unique labels";
+    }
+    m_procs.insert(make_pair(other->get_process_label(), other));
   }
 
   string dump_string()
   {
     stringstream ss;
     for (auto const& proc : m_procs) {
-      ss << proc.dump_string() << "\n\n";
+      ss << proc.second->dump_string() << "\n\n";
     }
     ss << "PROGRAM_ORDER: \n";
     ss << m_program_order.dump_string(); 
 
     return ss.str();
+  }
+
+  void check_distinct_instruction_labels()
+  {
+    unordered_set<string> instruction_label_set;
+    for (auto const& proc : m_procs) {
+      for (auto const& ins: proc.second->get_instruction_list()) {
+        if (instruction_label_set.count(ins->get_instruction_label())) {
+          throw "Instruction Labels for all processes should have unique labels";
+        } else {
+          instruction_label_set.insert(ins->get_instruction_label());
+        }
+      }
+    }
   }
 };
 

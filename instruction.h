@@ -20,15 +20,11 @@ public:
   instruction(string label) : m_label(label)
   { }
 
-  virtual void setLabel(string label)
-  {
-    m_label = label;
-  }
+  void set_label(string label) { m_label = label; }
 
-  virtual string dump_string() const
-  {
-    return "";
-  }
+  string get_instruction_label() { return m_label; }
+
+  virtual string dump_string() const { return ""; }
 };
 
 class assignment_instruction : public instruction
@@ -41,21 +37,12 @@ private:
 
 public:
   assignment_instruction(string left, string right)
-    : m_left(left), m_right_var(right)
-  {
-    m_is_constant = false;
-  }
+    : m_left(left), m_right_var(right), m_is_constant(false)
+  { }
 
   assignment_instruction(string left, int right)
-    : m_left(left), m_right_val(right)
-  {
-    m_is_constant = true;
-  }
-
-  void setLabel(string label)
-  {
-    m_label = label;
-  }
+    : m_left(left), m_right_val(right), m_is_constant(true)
+  { }
 
   string dump_string() const override
   {
@@ -79,15 +66,8 @@ private:
 
 public:
   mutex_instruction(string var, bool mode)
-    : m_mutex_var(var)
-  {
-    m_is_acquire = mode;
-  }
-
-  void setLabel(string label)
-  {
-    m_label = label;
-  }
+    : m_mutex_var(var), m_is_acquire(mode)
+  { }
 
   string dump_string() const override
   {
@@ -104,29 +84,31 @@ public:
 
 };
 
-class po_rel
+class binary_label_relation
 {
 private:
-  unordered_set<pair<string, string>, hash<pair<string, string>>> m_pairset;
+  unordered_set<pair<string, string>, hash<pair<string, string>>> m_set;
 public:
-  po_rel() : m_pairset()
+  binary_label_relation() : m_set()
   { }
 
-  po_rel(unordered_set<pair<string, string>> set) : m_pairset(set)
+  binary_label_relation(unordered_set<pair<string, string>> const& set)
+    : m_set(set)
   { }
 
-  po_rel(vector<pair<string, string>> vec) : m_pairset(vec.begin(), vec.end())
+  binary_label_relation(vector<pair<string, string>> const& vec)
+    : m_set(vec.begin(), vec.end())
   { }
 
-  void addPair(string l1, string l2)
+  void add_pair(string l1, string l2)
   {
-    m_pairset.insert(make_pair(l1, l2));
+    m_set.insert(make_pair(l1, l2));
   }
 
-  void relation_union(po_rel other)
+  void relation_union(binary_label_relation* const& other)
   {
-    for (auto p : other.m_pairset) {
-      m_pairset.insert(p);
+    for (auto p : other->m_set) {
+      m_set.insert(p);
     }
   }
 
@@ -135,7 +117,7 @@ public:
     stringstream ss;
     ss << "{";
     int i = 0;
-    for (auto const& p : m_pairset) {
+    for (auto const& p : m_set) {
       if (i != 0) {
         ss << ", ";
       }
