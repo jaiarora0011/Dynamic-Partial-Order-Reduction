@@ -1,6 +1,8 @@
 P1 {
   t01: x := 1
-  t02: x := 2
+  t02: x := y
+  t03: acquire(z)
+  t04: release(z)
 }
 
 

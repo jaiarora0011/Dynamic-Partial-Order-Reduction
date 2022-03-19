@@ -1,2 +1,5 @@
 main
 .vscode
+*.tab.cpp
+*.tab.hpp
+*.lex.cpp

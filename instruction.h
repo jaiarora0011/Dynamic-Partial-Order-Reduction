@@ -10,10 +10,18 @@
 
 using namespace std;
 
+enum instruction_type {
+  assignment,
+  mutex
+};
+
+class process;
 class instruction
 {
 protected:
   string m_label;
+  string m_process_id;
+  instruction_type m_type;
 public:
   instruction()
   { }
@@ -21,8 +29,10 @@ public:
   { }
 
   void set_label(string label) { m_label = label; }
-
   string get_instruction_label() { return m_label; }
+  void set_process_id(string const& proc) { m_process_id = proc; }
+  string get_process_id() { return m_process_id; }
+  instruction_type get_instruction_type() { return m_type; }
 
   virtual string dump_string() const { return ""; }
 };
@@ -38,16 +48,38 @@ private:
 public:
   assignment_instruction(string left, string right)
     : m_left(left), m_right_var(right), m_is_constant(false)
-  { }
+  {
+    m_type = assignment;
+  }
 
   assignment_instruction(string left, int right)
     : m_left(left), m_right_val(right), m_is_constant(true)
-  { }
+  {
+    m_type = assignment;
+  }
+
+  bool are_dependant(assignment_instruction* const& other)
+  { 
+    // Data races between 2 assignment instructions
+    if (this->m_left == other->m_left) {
+      return true;
+    }
+    if (this->m_is_constant && other->m_is_constant) {
+      return false;
+    } else if (this->m_is_constant) {
+      return this->m_left == other->m_right_var;
+    } else if (other->m_is_constant) {
+      return other->m_left == this->m_right_var;
+    } else {
+      return this->m_left == other->m_right_var || other->m_left == this->m_right_var;
+    }
+    return false;
+  }
 
   string dump_string() const override
   {
     stringstream ss;
-    ss << m_label << ": " << m_left << " := ";
+    ss << m_process_id << "." <<  m_label << ": " << m_left << " := ";
     if (m_is_constant) {
       ss << m_right_val;
     } else {
@@ -67,12 +99,21 @@ private:
 public:
   mutex_instruction(string var, bool mode)
     : m_mutex_var(var), m_is_acquire(mode)
-  { }
+  {
+    m_type = mutex;
+  }
+
+  bool are_dependant(mutex_instruction* const& other)
+  {
+    // 2 acquires on the same shared variable are dependant
+    return this->m_mutex_var == other->m_mutex_var
+      && this->m_is_acquire && other->m_is_acquire;
+  }
 
   string dump_string() const override
   {
     stringstream ss;
-    ss << m_label << ": ";
+    ss << m_process_id << "." << m_label << ": ";
     if (m_is_acquire) {
       ss << "acquire(";
     } else {
@@ -100,14 +141,13 @@ public:
     : m_set(vec.begin(), vec.end())
   { }
 
-  void add_pair(string l1, string l2)
-  {
-    m_set.insert(make_pair(l1, l2));
-  }
+  void add_pair(string l1, string l2) { m_set.insert(make_pair(l1, l2)); }
 
-  void relation_union(binary_label_relation* const& other)
+  int size() { return m_set.size(); }
+
+  void relation_union(binary_label_relation const& other)
   {
-    for (auto p : other->m_set) {
+    for (auto p : other.m_set) {
       m_set.insert(p);
     }
   }

@@ -28,6 +28,7 @@ main(int argc, char **argv)
   printf("retv = %d\n", ret);
   assert(parsed);
   parsed->check_distinct_instruction_labels();
+  parsed->compute_dependancy_relation();
   cout << parsed->dump_string() << endl;
 
   return 0;

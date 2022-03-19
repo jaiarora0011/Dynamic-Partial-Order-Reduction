@@ -1,5 +1,5 @@
-main: main.cpp parse.tab.cpp lex.lex.cpp
-	g++ parse.tab.cpp lex.lex.cpp main.cpp -ll -lfl -o $@
+main: main.cpp parse.tab.cpp lex.lex.cpp dpor.cpp
+	g++ parse.tab.cpp lex.lex.cpp dpor.cpp main.cpp -ll -lfl -o $@
 
 parse.tab.cpp parse.tab.hpp: parse.y
 	bison -o parse.tab.cpp -d parse.y

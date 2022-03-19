@@ -47,6 +47,13 @@ public:
     return m_list;
   }
 
+  void sync_process_label_across_instructions()
+  {
+    for (auto ins : m_list) {
+      ins->set_process_id(m_process_label);
+    }
+  }
+
   string dump_string() const
   {
     stringstream ss;
@@ -63,6 +70,8 @@ class concurrent_procs
 private:
   unordered_map<string, process*> m_procs;
   binary_label_relation m_program_order;
+  binary_label_relation m_dependancy_relation;
+  unordered_map<string, string> m_instruction_to_process_map;
 
 public:
   concurrent_procs()
@@ -80,6 +89,7 @@ public:
       throw "All processes should have unique labels";
     }
     m_procs.insert(make_pair(other->get_process_label(), other));
+    other->sync_process_label_across_instructions();
   }
 
   string dump_string()
@@ -89,24 +99,16 @@ public:
       ss << proc.second->dump_string() << "\n\n";
     }
     ss << "PROGRAM_ORDER: \n";
-    ss << m_program_order.dump_string(); 
+    ss << m_program_order.dump_string() << "\n";
+
+    ss << "DEPENDANCY_RELATION: \n";
+    ss << m_dependancy_relation.dump_string();
 
     return ss.str();
   }
 
-  void check_distinct_instruction_labels()
-  {
-    unordered_set<string> instruction_label_set;
-    for (auto const& proc : m_procs) {
-      for (auto const& ins: proc.second->get_instruction_list()) {
-        if (instruction_label_set.count(ins->get_instruction_label())) {
-          throw "Instruction Labels for all processes should have unique labels";
-        } else {
-          instruction_label_set.insert(ins->get_instruction_label());
-        }
-      }
-    }
-  }
+  void check_distinct_instruction_labels();
+  binary_label_relation compute_dependancy_relation();
 };
 
 #endif
