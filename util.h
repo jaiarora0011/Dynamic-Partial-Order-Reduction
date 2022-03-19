@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <unordered_set>
 using namespace std;
 
 template <class T>
@@ -21,5 +22,11 @@ struct hash<pair<S, T>>
          return seed;
     }
 };
+
+template <typename T>
+void unordered_set_union(unordered_set<T>& s1, const unordered_set<T>& s2)
+{
+  s1.insert(s2.begin(), s2.end());
+}
 
 #endif

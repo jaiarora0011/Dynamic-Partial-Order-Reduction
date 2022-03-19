@@ -1,11 +1,7 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include <string>
-#include <vector>
-#include <unordered_set>
 #include <unordered_map>
-#include "util.h"
 #include "instruction.h"
 
 using namespace std;
@@ -42,6 +38,33 @@ public:
     }
   }
 
+  unordered_set<variable> get_shared_vars()
+  {
+    unordered_set<variable> ret;
+    for (auto const& ins : m_list) {
+      if (ins->get_instruction_type() == assignment) {
+        auto assign = dynamic_cast<assignment_instruction*>(ins);
+        ret.insert(assign->get_lhs());
+        if (!assign->is_constant_assignment()) {
+          ret.insert(assign->get_rhs_var());
+        }
+      }
+    }
+    return ret;
+  }
+
+  unordered_set<variable> get_mutex_vars()
+  {
+    unordered_set<variable> ret;
+    for (auto const& ins : m_list) {
+      if (ins->get_instruction_type() == mutex) {
+        auto mut = dynamic_cast<mutex_instruction*>(ins);
+        ret.insert(mut->get_mutex_var());
+      }
+    }
+    return ret;
+  }
+
   string dump_string() const
   {
     stringstream ss;
@@ -65,7 +88,9 @@ public:
     : m_procs(), m_program_order()
   { }
 
+  unordered_map<label, process*> get_processes() { return m_procs; }
   void set_program_order(binary_label_relation const& p) { m_program_order = p; }
+  binary_label_relation get_dependant_set() {return m_dependancy_relation; }
 
   void add_program(process* const& other)
   {

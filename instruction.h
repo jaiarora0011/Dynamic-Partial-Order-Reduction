@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <string>
-#include <unordered_set>
 #include <vector>
 #include <sstream>
 #include "util.h"
@@ -60,6 +59,11 @@ public:
   {
     m_type = assignment;
   }
+
+  variable get_lhs() { return m_left; }
+  bool is_constant_assignment() { return m_is_constant; }
+  int get_rhs_val() { return m_right_val; }
+  variable get_rhs_var() { return m_right_var; }
 
   bool are_dependant(assignment_instruction* const& other)
   { 

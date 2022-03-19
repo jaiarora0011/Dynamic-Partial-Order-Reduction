@@ -1,9 +1,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
-#include <fstream>
-#include <assert.h>
-#include "program.h"
+#include "dpor.h"
 #include "parse.tab.hpp"
 
 extern "C" int yylex();
@@ -30,6 +28,8 @@ main(int argc, char **argv)
   parsed->check_distinct_instruction_labels();
   parsed->compute_dependancy_relation();
   cout << parsed->dump_string() << endl;
+  dpor algo(parsed);
+  algo.test();
 
   return 0;
 }

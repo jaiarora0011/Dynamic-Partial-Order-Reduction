@@ -127,3 +127,38 @@ state::get_enabled_set(unordered_map<label, process*> const& all_procs)
 
   return ret;
 }
+
+// Assume that the instruction is enabled at the current state
+state
+state::get_next_state(instruction* const& ins)
+{
+  assert(ins);
+  state next(*this);
+  if (ins->get_instruction_type() == mutex) {
+    auto mut = dynamic_cast<mutex_instruction*>(ins);
+    assert(mut);
+    auto status = next.m_mutex_state[mut->get_mutex_var()];
+    if (status.first == locked) {
+      assert(status.second == mut->get_process_id());
+      assert(!mut->is_acquire());
+      assert(status.second == mut->get_process_id());
+      next.m_mutex_state[mut->get_mutex_var()] = make_pair(unlocked, "");
+    } else {
+      assert(mut->is_acquire());
+      next.m_mutex_state[mut->get_mutex_var()] = make_pair(locked, mut->get_process_id());
+    }
+  } else {
+    auto assign = dynamic_cast<assignment_instruction*>(ins);
+    assert(assign);
+    if (assign->is_constant_assignment()) {
+      next.m_shared_state[assign->get_lhs()] = assign->get_rhs_val();
+    } else {
+      int read_val = next.m_shared_state.at(assign->get_rhs_var());
+      next.m_shared_state[assign->get_lhs()] = read_val;
+    }
+  }
+  // Increment the pc of the executing process
+  next.m_loc_state[ins->get_process_id()]++;
+
+  return next;
+}
