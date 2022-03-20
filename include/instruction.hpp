@@ -39,6 +39,7 @@ public:
   virtual string dump_string() const { return ""; }
 };
 
+// Represents instructions of the form x := e
 class assignment_instruction : public instruction
 {
 private:
@@ -97,6 +98,7 @@ public:
 
 };
 
+// Represents acquire(), release() instructions
 class mutex_instruction : public instruction
 {
 private:
