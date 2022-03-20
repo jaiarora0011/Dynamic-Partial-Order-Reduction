@@ -1,6 +1,10 @@
-main
+dpor
 .vscode
 *.tab.cpp
 *.tab.hpp
 *.lex.cpp
 *.dot
+*.aux
+*.log
+*.pdf
+*.tex

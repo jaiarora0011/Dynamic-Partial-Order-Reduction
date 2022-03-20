@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
-#include "dpor.h"
+#include "dpor.hpp"
 #include "parse.tab.hpp"
 
 extern "C" int yylex();
@@ -14,8 +14,8 @@ using namespace std;
 int
 main(int argc, char **argv)
 { 
-  if (argc == 1) {
-    cout << "Insufficient number of Input Parameters. Expected = 2. Found = " << argc << endl;
+  if (argc <= 2) {
+    cout << "Insufficient number of Input Parameters. Expected = 3. Found = " << argc << endl;
     return 1; 
   }
   
@@ -28,7 +28,7 @@ main(int argc, char **argv)
   parsed->check_distinct_instruction_labels();
   parsed->compute_dependancy_relation();
   cout << parsed->dump_string() << endl;
-  dpor algo(parsed, filename);
+  dpor algo(parsed, filename, argv[2]);
   algo.dynamic_por();
   cout << algo.get_stats() << endl;
   algo.print_to_dot_format();

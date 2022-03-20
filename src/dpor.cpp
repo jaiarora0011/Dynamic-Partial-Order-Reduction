@@ -1,4 +1,4 @@
-#include "dpor.h"
+#include "dpor.hpp"
 
 using namespace std;
 
@@ -214,8 +214,7 @@ dpor::dynamic_por()
 void
 dpor::print_to_dot_format()
 {
-  string outfile = m_input_file + ".dot";
-  ofstream out(outfile);
+  ofstream out(m_dot_file);
 
   out << "digraph{\n";
   out << "\tnodesep = 0.5;\n";

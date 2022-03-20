@@ -1,8 +1,8 @@
-#ifndef PROGRAM_H
-#define PROGRAM_H
+#ifndef PROGRAM_HPP
+#define PROGRAM_HPP
 
 #include <unordered_map>
-#include "instruction.h"
+#include "instruction.hpp"
 
 using namespace std;
 

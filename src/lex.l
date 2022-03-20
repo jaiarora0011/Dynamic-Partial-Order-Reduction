@@ -8,7 +8,7 @@ WS  [ \t\v\n\f]
 %{
 #include <stdio.h>
 #include <string.h>
-#include "program.h"
+#include "program.hpp"
 #include "parse.tab.hpp"
 
 extern void yyerror(const char *);  /* prints grammar violation message */

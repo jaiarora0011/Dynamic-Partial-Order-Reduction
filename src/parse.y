@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
-#include "program.h"
+#include "program.hpp"
 using namespace std;
 
 // stuff from flex that bison needs to know about:

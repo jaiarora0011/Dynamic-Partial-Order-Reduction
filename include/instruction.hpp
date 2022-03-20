@@ -1,11 +1,11 @@
-#ifndef INSTRUCTION_H
-#define INSTRUCTION_H
+#ifndef INSTRUCTION_HPP
+#define INSTRUCTION_HPP
 
 #include <iostream>
 #include <string>
 #include <vector>
 #include <sstream>
-#include "util.h"
+#include "util.hpp"
 
 using namespace std;
 

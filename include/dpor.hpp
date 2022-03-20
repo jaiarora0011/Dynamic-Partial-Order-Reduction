@@ -1,7 +1,7 @@
-#ifndef DPOR_H
-#define DPOR_H
+#ifndef DPOR_HPP
+#define DPOR_HPP
 
-#include "program.h"
+#include "program.hpp"
 #include <assert.h>
 #include <fstream>
 
@@ -122,6 +122,7 @@ class dpor
 {
 private:
   string m_input_file;
+  string m_dot_file;
   concurrent_procs* m_data;
   vector<state*> m_states;
   vector<transition> m_transitions;
@@ -130,7 +131,8 @@ private:
 public:
   dpor() {}
 
-  dpor(concurrent_procs* all_procs, string input) : m_input_file(input)
+  dpor(concurrent_procs* all_procs, string input, string dot_file)
+    : m_input_file(input), m_dot_file(dot_file)
   {
     m_data = all_procs;
   }
