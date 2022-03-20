@@ -47,6 +47,23 @@ are_instructions_dependant(instruction* i1, instruction* i2)
   }
 }
 
+bool
+may_be_coenabled(instruction* i1, instruction* i2)
+{ 
+  if (i1->get_process_id() == i2->get_process_id()) {
+    return false;
+  }
+  if (i1->get_instruction_type() == mutex) {
+    auto a1 = dynamic_cast<mutex_instruction*>(i1);
+    auto a2 = dynamic_cast<mutex_instruction*>(i2);
+    assert(a1);
+    assert(a2);
+    return !(a1->get_mutex_var() == a2->get_mutex_var()
+      && a1->is_acquire() != a2->is_acquire());
+  }
+  return true;
+}
+
 binary_label_relation
 compute_dependant_instructions(process* p1, process* p2)
 {
@@ -187,28 +204,100 @@ dpor::find_state(state* const& s)
 }
 
 void
-dpor::explore(vector<transition> &stack)
+dpor::explore(vector<transition> &stack, clock_vectors C)
 {
   auto last_state = this->last_transition_sequence_state(stack);
-  auto enabled_processes = last_state->get_enabled_set(m_data->get_processes());
-  for (auto const& proc : enabled_processes) {
-    auto action = last_state->get_process_next_transition(proc);
-    auto next_state = last_state->get_next_state(action);
-    next_state = find_state(next_state);
-    transition new_transition(last_state, action, next_state);
-    m_transitions.push_back(new_transition);
-    stack.push_back(new_transition);
-    explore(stack);
-    stack.pop_back();
+  // auto enabled_processes = last_state->get_enabled_set(m_data->get_processes());
+  // for (auto const& proc : enabled_processes) {
+  //   auto action = last_state->get_process_next_transition(proc);
+  //   auto next_state = last_state->get_next_state(action);
+  //   next_state = find_state(next_state);
+  //   transition new_transition(last_state, action, next_state);
+  //   m_transitions.push_back(new_transition);
+  //   stack.push_back(new_transition);
+  //   explore(stack);
+  //   stack.pop_back();
+  // }
+  
+  for (auto const& p : m_data->get_processes()) {
+    auto next_s_p = last_state->get_process_next_transition(p.second);
+    if (next_s_p == NULL) {
+      continue;
+    }
+    bool found = false;
+    int index;
+    for (int i = stack.size() - 1; i >= 0; i--) {
+      auto ins = stack[i].get_action();
+      if (m_data->get_dependant_set().exists(ins->get_instruction_label(), next_s_p->get_instruction_label())
+        && may_be_coenabled(ins, next_s_p) && i + 1 > C.get_clock_vector(p.first)[ins->get_process_id()]) {
+        found = true;
+        index = i;
+        break;
+      }
+    }
+    if (found) {
+      auto pre_s_i = stack[index].get_from_state();
+      auto enabled_set = pre_s_i->get_enabled_set(m_data->get_processes());
+      if (enabled_set.count(p.second)) {
+        pre_s_i->add_to_backtrack_set(p.second);
+      } else {
+        for (auto const& en : enabled_set) {
+          pre_s_i->add_to_backtrack_set(en);
+        }
+      }
+    }
   }
+
+  auto enabled_set = last_state->get_enabled_set(m_data->get_processes());
+
+  if (enabled_set.size()) {
+    auto proc = *enabled_set.begin();
+    unordered_set<process*> bs;
+    bs.insert(proc);
+    last_state->set_backtrack_set(bs);
+    unordered_set<process*> done;
+
+    while (true) {
+      bs = last_state->get_backtrack_set();
+      unordered_set_difference(bs, done);
+      if (!bs.size()) {
+        break;
+      }
+      auto proc = *bs.begin();
+      auto next_s_p = last_state->get_process_next_transition(proc);
+      auto empty_cv = C.empty_clock_vector();
+      for (int i = 0; i < stack.size(); ++i) {
+        auto ins = stack[i].get_action();
+        if (m_data->get_dependant_set().exists(ins->get_instruction_label(), next_s_p->get_instruction_label())) {
+          empty_cv = C.clock_vector_max(empty_cv, C.get_clock_vector(i+1));
+        }
+      }
+      auto next_state = last_state->get_next_state(next_s_p);
+      next_state = find_state(next_state);
+      transition new_transition(last_state, next_s_p, next_state);
+      m_transitions.push_back(new_transition);
+      stack.push_back(new_transition);
+      empty_cv[proc->get_process_label()] = stack.size();
+      C.set_clock_vector(proc->get_process_label(), empty_cv);
+      C.set_clock_vector(stack.size(), empty_cv);
+      explore(stack, C);
+      stack.pop_back();
+    }
+  }
+
 }
 
 void
 dpor::dynamic_por()
-{
+{ 
+  vector<label> ids;
+  for (auto const& p : m_data->get_processes()) {
+    ids.push_back(p.first);
+  }
+  clock_vectors C(ids);
   this->initialize_with_start_state();
   vector<transition> stack;
-  explore(stack);
+  explore(stack, C);
 }
 
 void

@@ -152,6 +152,7 @@ public:
   { }
 
   void add_pair(label l1, label l2) { m_set.insert(make_pair(l1, l2)); }
+  bool exists(label l1, label l2) { return m_set.count(make_pair(l1, l2)) != 0; }
 
   int size() { return m_set.size(); }
 

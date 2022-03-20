@@ -23,7 +23,10 @@ main(int argc, char **argv)
   yyin = fopen(filename, "r");
   assert(yyin);
   int ret = yyparse();
-  printf("retv = %d\n", ret);
+  if (ret) {
+    cout << "Error in parsing input" << endl;
+    return 1;
+  }
   assert(parsed);
   parsed->check_distinct_instruction_labels();
   parsed->compute_dependancy_relation();

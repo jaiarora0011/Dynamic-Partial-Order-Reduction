@@ -24,6 +24,8 @@ private:
   unordered_map<variable, pair<mutex_status, label>> m_mutex_state;
   // process_id --> pc (to be executed) mapping
   unordered_map<label, int> m_loc_state;
+
+  unordered_set<process*> m_backtrack_set;
 public:
   state()
   { }
@@ -39,6 +41,9 @@ public:
   
   label get_label() { return m_label; }
   void set_label(string label) { m_label = label; }
+  unordered_set<process*> get_backtrack_set() { return m_backtrack_set; }
+  void set_backtrack_set(unordered_set<process*> bs) { m_backtrack_set = bs; }
+  void add_to_backtrack_set(process* proc) { m_backtrack_set.insert(proc); }
 
   // Returns the start state with all shared variables
   // initialized to zero, all mutex variables unlocked,
@@ -118,6 +123,65 @@ public:
   instruction* get_action() const { return m_action; }
 };
 
+// pid --> N mapping
+using clock_vector = unordered_map<label, int>;
+
+class clock_vectors
+{
+private:
+  unordered_map<label, clock_vector> m_process_map;
+  unordered_map<int, clock_vector> m_transition_map;
+  vector<label> m_ids;
+
+public:
+  clock_vectors() {}
+  clock_vectors(vector<label> ids) : m_ids(ids)
+  { }
+
+  clock_vector empty_clock_vector()
+  {
+    clock_vector ret;
+    for (auto const& p : m_ids) {
+      ret[p] = 0;
+    }
+    return ret;
+  }
+  
+  clock_vector get_clock_vector(label l)
+  {
+    if (m_process_map.count(l)) {
+      return m_process_map[l];
+    }
+    clock_vector e = empty_clock_vector();
+    m_process_map[l] = e;
+    return e;
+  }
+
+  clock_vector get_clock_vector(int n)
+  {
+    if (m_transition_map.count(n)) {
+      return m_transition_map[n];
+    }
+    clock_vector e = empty_clock_vector();
+    m_transition_map[n] = e;
+    return e;
+  }
+
+  void set_clock_vector(label l, clock_vector cv) { m_process_map[l] = cv; }
+  void set_clock_vector(int n, clock_vector cv) { m_transition_map[n] = cv; }
+
+  clock_vector clock_vector_max(clock_vector cv1, clock_vector cv2)
+  {
+    clock_vector ret = empty_clock_vector();
+    for (auto const& p : cv1) {
+      ret[p.first] = max(p.second, cv2[p.first]);
+    }
+
+    return ret;
+  }
+
+};
+
 class dpor
 {
 private:
@@ -127,6 +191,7 @@ private:
   vector<state*> m_states;
   vector<transition> m_transitions;
   state* m_start_state;
+  // clock_vectors m_clocks;
 
 public:
   dpor() {}
@@ -146,7 +211,7 @@ public:
       unordered_set_union(mutex_vars, m.second->get_mutex_vars());
     }
     state* start = state::get_start_state(shared_vars, mutex_vars, m_data->get_processes());
-    cout << start->dump_string() << endl;
+    // cout << start->dump_string() << endl;
     m_states.push_back(start);
     m_start_state = start;
   }
@@ -161,7 +226,7 @@ public:
 
   state* find_state(state* const& s);
   void dynamic_por();
-  void explore(vector<transition> &stack);
+  void explore(vector<transition> &stack, clock_vectors C);
 
   string get_stats()
   {
