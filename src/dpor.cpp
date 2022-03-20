@@ -167,7 +167,6 @@ state::get_next_state(instruction* const& ins)
     if (status.first == locked) {
       assert(status.second == mut->get_process_id());
       assert(!mut->is_acquire());
-      assert(status.second == mut->get_process_id());
       next->m_mutex_state[mut->get_mutex_var()] = make_pair(unlocked, "");
     } else {
       assert(mut->is_acquire());
@@ -207,6 +206,7 @@ void
 dpor::explore(vector<transition> &stack, clock_vectors C)
 {
   auto last_state = this->last_transition_sequence_state(stack);
+  // cout << "At state  = " << last_state->get_label() << endl;
   // auto enabled_processes = last_state->get_enabled_set(m_data->get_processes());
   // for (auto const& proc : enabled_processes) {
   //   auto action = last_state->get_process_next_transition(proc);
@@ -259,12 +259,14 @@ dpor::explore(vector<transition> &stack, clock_vectors C)
 
     while (true) {
       bs = last_state->get_backtrack_set();
+      done = last_state->get_done_set();
       unordered_set_difference(bs, done);
       if (!bs.size()) {
         break;
       }
       auto proc = *bs.begin();
-      done.insert(proc);
+      // cout <<  "Chosen Process from enable set at " << last_state->get_label() << " = " << proc->get_process_label() << endl;
+      last_state->add_to_done_set(proc);
       auto next_s_p = last_state->get_process_next_transition(proc);
       auto empty_cv = C.empty_clock_vector();
       for (int i = 0; i < stack.size(); ++i) {

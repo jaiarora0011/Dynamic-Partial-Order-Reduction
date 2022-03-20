@@ -34,10 +34,10 @@ clean_all: clean
 	rm -f $(FINAL_EXEC)
 	cd $(SRC) && rm -f *.tab.cpp *.lex.cpp *.tab.hpp
 
-.PHONY: test $(FINAL_EXEC)
+.PHONY: test 
 test: $(DOTS)
 
-$(OUTPUT)/%.dot: $(INPUT)/%.txt
-	./$(FINAL_EXEC) $^ $@
+$(OUTPUT)/%.dot: $(INPUT)/%.txt $(FINAL_EXEC)
+	./$(FINAL_EXEC) $< $@
 	dot2tex $@ > $@.tex 
 	cd $(OUTPUT) && pdflatex $*.dot.tex > /dev/null
