@@ -264,6 +264,7 @@ dpor::explore(vector<transition> &stack, clock_vectors C)
         break;
       }
       auto proc = *bs.begin();
+      done.insert(proc);
       auto next_s_p = last_state->get_process_next_transition(proc);
       auto empty_cv = C.empty_clock_vector();
       for (int i = 0; i < stack.size(); ++i) {
@@ -283,6 +284,8 @@ dpor::explore(vector<transition> &stack, clock_vectors C)
       explore(stack, C);
       stack.pop_back();
     }
+  } else {
+    m_executions++;
   }
 
 }

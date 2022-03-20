@@ -34,7 +34,7 @@ clean_all: clean
 	rm -f $(FINAL_EXEC)
 	cd $(SRC) && rm -f *.tab.cpp *.lex.cpp *.tab.hpp
 
-.PHONY: test
+.PHONY: test $(FINAL_EXEC)
 test: $(DOTS)
 
 $(OUTPUT)/%.dot: $(INPUT)/%.txt

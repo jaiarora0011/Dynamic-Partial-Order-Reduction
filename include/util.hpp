@@ -32,7 +32,9 @@ void unordered_set_union(unordered_set<T>& s1, const unordered_set<T>& s2)
 template <typename T>
 void unordered_set_difference(unordered_set<T>& s1, const unordered_set<T>& s2)
 {
-  s1.erase(s2.begin(), s2.end());
+  for (auto const& elem : s2) {
+    s1.erase(elem);
+  }
 }
 
 #endif

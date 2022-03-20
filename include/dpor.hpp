@@ -191,7 +191,7 @@ private:
   vector<state*> m_states;
   vector<transition> m_transitions;
   state* m_start_state;
-  // clock_vectors m_clocks;
+  int m_executions;
 
 public:
   dpor() {}
@@ -200,6 +200,7 @@ public:
     : m_input_file(input), m_dot_file(dot_file)
   {
     m_data = all_procs;
+    m_executions = 0;
   }
 
   void initialize_with_start_state()
@@ -233,6 +234,7 @@ public:
     stringstream ss;
     ss << "NUM_STATES = " << m_states.size() << "\n";
     ss << "NUM_TRANSITIONS = " << m_transitions.size() << "\n";
+    ss << "NUM_EXECUTIONS = " << m_executions << "\n";
 
     return ss.str();
   }
