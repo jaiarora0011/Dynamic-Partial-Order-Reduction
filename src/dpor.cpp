@@ -29,6 +29,9 @@ concurrent_procs::check_distinct_instruction_labels()
 bool
 are_instructions_dependant(instruction* i1, instruction* i2)
 {
+  if (i1 == NULL || i2 == NULL) {
+    return false;
+  }
   if (i1->get_instruction_type() != i2->get_instruction_type()) {
     return false;
   }
@@ -206,18 +209,6 @@ void
 dpor::explore(vector<transition> &stack, clock_vectors C)
 {
   auto last_state = this->last_transition_sequence_state(stack);
-  // cout << "At state  = " << last_state->get_label() << endl;
-  // auto enabled_processes = last_state->get_enabled_set(m_data->get_processes());
-  // for (auto const& proc : enabled_processes) {
-  //   auto action = last_state->get_process_next_transition(proc);
-  //   auto next_state = last_state->get_next_state(action);
-  //   next_state = find_state(next_state);
-  //   transition new_transition(last_state, action, next_state);
-  //   m_transitions.push_back(new_transition);
-  //   stack.push_back(new_transition);
-  //   explore(stack);
-  //   stack.pop_back();
-  // }
   
   for (auto const& p : m_data->get_processes()) {
     auto next_s_p = last_state->get_process_next_transition(p.second);
@@ -236,10 +227,14 @@ dpor::explore(vector<transition> &stack, clock_vectors C)
       }
     }
     if (found) {
+      auto ins = stack[index].get_action();
       auto pre_s_i = stack[index].get_from_state();
       auto enabled_set = pre_s_i->get_enabled_set(m_data->get_processes());
       if (enabled_set.count(p.second)) {
+        // cout << "On state " << last_state->get_label() << ", Adding " << p.first << " to backtrack set of " << pre_s_i->get_label() << endl;
         pre_s_i->add_to_backtrack_set(p.second);
+        pre_s_i->add_to_sleep_set(m_data->get_processes()[ins->get_process_id()]);
+        // cout << "Adding " << ins->get_process_id() << " to sleep set of " << pre_s_i->get_label() << endl;
       } else {
         for (auto const& en : enabled_set) {
           pre_s_i->add_to_backtrack_set(en);
@@ -249,24 +244,39 @@ dpor::explore(vector<transition> &stack, clock_vectors C)
   }
 
   auto enabled_set = last_state->get_enabled_set(m_data->get_processes());
+  unordered_set_difference(enabled_set, last_state->get_sleep_set());
 
   if (enabled_set.size()) {
     auto proc = *enabled_set.begin();
     unordered_set<process*> bs;
     bs.insert(proc);
     last_state->set_backtrack_set(bs);
-    unordered_set<process*> done;
+    unordered_set<process*> done, sleep;
 
     while (true) {
       bs = last_state->get_backtrack_set();
       done = last_state->get_done_set();
+      sleep = last_state->get_sleep_set();
+      // cout << "done Set at " << last_state->get_label() << endl;
+      // for (auto const& sleep_proc : done) {
+      //   cout << "\t" << sleep_proc->get_process_label() << endl;
+      // }
+      // cout << "sleep Set at " << last_state->get_label() << endl;
+      // for (auto const& sleep_proc : sleep) {
+      //   cout << "\t" << sleep_proc->get_process_label() << endl;
+      // }
       unordered_set_difference(bs, done);
       if (!bs.size()) {
         break;
       }
       auto proc = *bs.begin();
       // cout <<  "Chosen Process from enable set at " << last_state->get_label() << " = " << proc->get_process_label() << endl;
+      // cout << "BackTrack set size " <<  bs.size() << endl;
+      // cout << "At state " << last_state->get_label() << ", chosen proc = " << proc->get_process_label() << endl;
       last_state->add_to_done_set(proc);
+      if (sleep.count(proc)) {
+        continue;
+      }
       auto next_s_p = last_state->get_process_next_transition(proc);
       auto empty_cv = C.empty_clock_vector();
       for (int i = 0; i < stack.size(); ++i) {
@@ -277,6 +287,14 @@ dpor::explore(vector<transition> &stack, clock_vectors C)
       }
       auto next_state = last_state->get_next_state(next_s_p);
       next_state = find_state(next_state);
+      for (auto const& sleep_proc : sleep) {
+        auto ins = last_state->get_process_next_transition(sleep_proc);
+        if (are_instructions_dependant(ins, next_s_p)) {
+          continue;
+        }
+        // cout << "Adding " << sleep_proc->get_process_label() << " to sleep set of " << next_state->get_label() << endl;
+        next_state->add_to_sleep_set(sleep_proc);
+      }
       transition new_transition(last_state, next_s_p, next_state);
       m_transitions.push_back(new_transition);
       stack.push_back(new_transition);
@@ -313,7 +331,7 @@ dpor::print_to_dot_format()
   out << "digraph{\n";
   out << "\tnodesep = 0.5;\n";
   out << "\tranksep = 0.35;\n";
-  //out << "\t node [shape=plaintext];\n";
+
   for (int i = 0; i < m_states.size(); ++i) {
     out << "\t" << i;
     out << "\n";

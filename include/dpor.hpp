@@ -27,6 +27,7 @@ private:
 
   unordered_set<process*> m_backtrack_set;
   unordered_set<process*> m_done_set;
+  unordered_set<process*> m_sleep_set;
 public:
   state()
   { }
@@ -49,6 +50,9 @@ public:
   unordered_set<process*> get_done_set() { return m_done_set; }
   void set_done_set(unordered_set<process*> bs) { m_done_set = bs; }
   void add_to_done_set(process* proc) { m_done_set.insert(proc); }
+
+  unordered_set<process*> get_sleep_set() { return m_sleep_set; }
+  void add_to_sleep_set(process* proc) { m_sleep_set.insert(proc); }
 
   // Returns the start state with all shared variables
   // initialized to zero, all mutex variables unlocked,
