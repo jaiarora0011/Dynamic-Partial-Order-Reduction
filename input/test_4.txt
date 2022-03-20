@@ -1,0 +1,14 @@
+P1 {
+  t01: acquire(z)
+  t02: x := 1
+  t03: release(z)
+}
+
+P2 {
+  t11: acquire(z)
+  t12: x := 2
+  t13: release(z)
+}
+
+
+PROGRAM_ORDER: {(t01, t02), (t02, t03), (t01, t03), (t11, t12), (t12, t13), (t11, t13)}  

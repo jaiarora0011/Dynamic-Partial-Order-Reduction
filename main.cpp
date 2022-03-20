@@ -28,9 +28,10 @@ main(int argc, char **argv)
   parsed->check_distinct_instruction_labels();
   parsed->compute_dependancy_relation();
   cout << parsed->dump_string() << endl;
-  dpor algo(parsed);
+  dpor algo(parsed, filename);
   algo.dynamic_por();
   cout << algo.get_stats() << endl;
+  algo.print_to_dot_format();
 
   return 0;
 }

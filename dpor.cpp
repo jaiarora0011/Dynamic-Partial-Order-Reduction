@@ -168,7 +168,7 @@ state::get_next_state(instruction* const& ins)
   }
   // Increment the pc of the executing process
   next->m_loc_state[ins->get_process_id()]++;
-  next->m_label = this->m_label + "." + ins->get_instruction_label();
+  // next->m_label = this->m_label + "." + ins->get_instruction_label();
 
   return next;
 }
@@ -182,6 +182,7 @@ dpor::find_state(state* const& s)
     }
   }
   m_states.push_back(s);
+  s->set_label(to_string(m_states.size()-1));
   return s;
 }
 
@@ -208,4 +209,30 @@ dpor::dynamic_por()
   this->initialize_with_start_state();
   vector<transition> stack;
   explore(stack);
+}
+
+void
+dpor::print_to_dot_format()
+{
+  string outfile = m_input_file + ".dot";
+  ofstream out(outfile);
+
+  out << "digraph{\n";
+  out << "\tnodesep = 0.5;\n";
+  out << "\tranksep = 0.35;\n";
+  //out << "\t node [shape=plaintext];\n";
+  for (int i = 0; i < m_states.size(); ++i) {
+    out << "\t" << i;
+    out << "\n";
+  }
+  // out << "\tsubgraph dir\n";
+  // out << "\t{\n";
+
+  for (auto const& t : m_transitions) {
+    out << "\t" << t.get_from_state()->get_label() << " -> " << t.get_to_state()->get_label() << " [label=\"" << t.get_action()->dump_string() << "\"];\n";
+  }
+
+  // out << "\t}\n";
+  out << "}";
+  out.close();
 }

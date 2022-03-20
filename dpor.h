@@ -3,6 +3,7 @@
 
 #include "program.h"
 #include <assert.h>
+#include <fstream>
 
 using namespace std;
 
@@ -27,7 +28,7 @@ public:
   state()
   { }
 
-  state(string label) : m_label(label)
+  state(label label) : m_label(label)
   { }
 
   state(state const& other)
@@ -35,6 +36,9 @@ public:
       m_mutex_state(other.m_mutex_state),
       m_loc_state(other.m_loc_state)
   { }
+  
+  label get_label() { return m_label; }
+  void set_label(string label) { m_label = label; }
 
   // Returns the start state with all shared variables
   // initialized to zero, all mutex variables unlocked,
@@ -45,7 +49,7 @@ public:
     unordered_map<label, process*> const& processes
   )
   {
-    auto ret = new state("s0");
+    auto ret = new state("0");
     for (auto const& var : shared_vars) {
       ret->m_shared_state.insert(make_pair(var, 0));
     }
@@ -117,6 +121,7 @@ public:
 class dpor
 {
 private:
+  string m_input_file;
   concurrent_procs* m_data;
   vector<state*> m_states;
   vector<transition> m_transitions;
@@ -125,7 +130,7 @@ private:
 public:
   dpor() {}
 
-  dpor(concurrent_procs* all_procs)
+  dpor(concurrent_procs* all_procs, string input) : m_input_file(input)
   {
     m_data = all_procs;
   }
@@ -164,6 +169,8 @@ public:
 
     return ss.str();
   }
+
+  void print_to_dot_format();
 };
 
 #endif

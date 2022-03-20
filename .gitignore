@@ -3,3 +3,4 @@ main
 *.tab.cpp
 *.tab.hpp
 *.lex.cpp
+*.dot

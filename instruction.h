@@ -86,7 +86,7 @@ public:
   string dump_string() const override
   {
     stringstream ss;
-    ss << m_process_id << "." <<  m_label << ": " << m_left << " := ";
+    ss << m_label << ": " << m_left << " := ";
     if (m_is_constant) {
       ss << m_right_val;
     } else {
@@ -123,7 +123,7 @@ public:
   string dump_string() const override
   {
     stringstream ss;
-    ss << m_process_id << "." << m_label << ": ";
+    ss << m_label << ": ";
     if (m_is_acquire) {
       ss << "acquire(";
     } else {
