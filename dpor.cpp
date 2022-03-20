@@ -2,19 +2,28 @@
 
 using namespace std;
 
+string enum_mutex_to_string(mutex_status m)
+{
+  if (m == unlocked) {
+    return "unlocked";
+  } else {
+    return "locked";
+  }
+}
+
 void
 concurrent_procs::check_distinct_instruction_labels()
 {
   unordered_set<string> instruction_label_set;
-    for (auto const& proc : m_procs) {
-      for (auto const& ins: proc.second->get_instruction_list()) {
-        if (instruction_label_set.count(ins->get_instruction_label())) {
-          throw "Instruction Labels for all processes should have unique labels";
-        } else {
-          instruction_label_set.insert(ins->get_instruction_label());
-        }
+  for (auto const& proc : m_procs) {
+    for (auto const& ins: proc.second->get_instruction_list()) {
+      if (instruction_label_set.count(ins->get_instruction_label())) {
+        throw "Instruction Labels for all processes should have unique labels";
+      } else {
+        instruction_label_set.insert(ins->get_instruction_label());
       }
     }
+  }
 }
 
 bool
@@ -129,36 +138,74 @@ state::get_enabled_set(unordered_map<label, process*> const& all_procs)
 }
 
 // Assume that the instruction is enabled at the current state
-state
+state*
 state::get_next_state(instruction* const& ins)
 {
   assert(ins);
-  state next(*this);
+  state* next = new state(*this);
   if (ins->get_instruction_type() == mutex) {
     auto mut = dynamic_cast<mutex_instruction*>(ins);
     assert(mut);
-    auto status = next.m_mutex_state[mut->get_mutex_var()];
+    auto status = next->m_mutex_state[mut->get_mutex_var()];
     if (status.first == locked) {
       assert(status.second == mut->get_process_id());
       assert(!mut->is_acquire());
       assert(status.second == mut->get_process_id());
-      next.m_mutex_state[mut->get_mutex_var()] = make_pair(unlocked, "");
+      next->m_mutex_state[mut->get_mutex_var()] = make_pair(unlocked, "");
     } else {
       assert(mut->is_acquire());
-      next.m_mutex_state[mut->get_mutex_var()] = make_pair(locked, mut->get_process_id());
+      next->m_mutex_state[mut->get_mutex_var()] = make_pair(locked, mut->get_process_id());
     }
   } else {
     auto assign = dynamic_cast<assignment_instruction*>(ins);
     assert(assign);
     if (assign->is_constant_assignment()) {
-      next.m_shared_state[assign->get_lhs()] = assign->get_rhs_val();
+      next->m_shared_state[assign->get_lhs()] = assign->get_rhs_val();
     } else {
-      int read_val = next.m_shared_state.at(assign->get_rhs_var());
-      next.m_shared_state[assign->get_lhs()] = read_val;
+      int read_val = next->m_shared_state.at(assign->get_rhs_var());
+      next->m_shared_state[assign->get_lhs()] = read_val;
     }
   }
   // Increment the pc of the executing process
-  next.m_loc_state[ins->get_process_id()]++;
+  next->m_loc_state[ins->get_process_id()]++;
+  next->m_label = this->m_label + "." + ins->get_instruction_label();
 
   return next;
+}
+
+state*
+dpor::find_state(state* const& s)
+{
+  for (auto const& state : m_states) {
+    if (*state == *s) {
+      return state;
+    }
+  }
+  m_states.push_back(s);
+  return s;
+}
+
+void
+dpor::explore(vector<transition> &stack)
+{
+  auto last_state = this->last_transition_sequence_state(stack);
+  auto enabled_processes = last_state->get_enabled_set(m_data->get_processes());
+  for (auto const& proc : enabled_processes) {
+    auto action = last_state->get_process_next_transition(proc);
+    auto next_state = last_state->get_next_state(action);
+    next_state = find_state(next_state);
+    transition new_transition(last_state, action, next_state);
+    m_transitions.push_back(new_transition);
+    stack.push_back(new_transition);
+    explore(stack);
+    stack.pop_back();
+  }
+}
+
+void
+dpor::dynamic_por()
+{
+  this->initialize_with_start_state();
+  vector<transition> stack;
+  explore(stack);
 }

@@ -29,7 +29,8 @@ main(int argc, char **argv)
   parsed->compute_dependancy_relation();
   cout << parsed->dump_string() << endl;
   dpor algo(parsed);
-  algo.test();
+  algo.dynamic_por();
+  cout << algo.get_stats() << endl;
 
   return 0;
 }

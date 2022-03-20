@@ -75,6 +75,7 @@ program_order_relation
 pair_list
   : s_pair  { $$ = $1; }
   | pair_list ',' s_pair  { $1->relation_union(*$3); $$ = $1; }
+  |                       { $$ = new binary_label_relation(); }
   ;
 
 s_pair

@@ -11,14 +11,7 @@ enum mutex_status {
   locked
 };
 
-// string mutex_status_to_string(mutex_status m)
-// {
-//   if (m == unlocked) {
-//     return "unlocked";
-//   } else {
-//     return "locked";
-//   }
-// }
+string enum_mutex_to_string(mutex_status m);
 
 class state
 {
@@ -46,21 +39,21 @@ public:
   // Returns the start state with all shared variables
   // initialized to zero, all mutex variables unlocked,
   // and pc's for all processes to zero
-  static state get_start_state(
+  static state* get_start_state(
     unordered_set<variable> const& shared_vars,
     unordered_set<variable> const& mutex_vars,
     unordered_map<label, process*> const& processes
   )
   {
-    state ret("s0");
+    auto ret = new state("s0");
     for (auto const& var : shared_vars) {
-      ret.m_shared_state.insert(make_pair(var, 0));
+      ret->m_shared_state.insert(make_pair(var, 0));
     }
     for (auto const& mutex : mutex_vars) {
-      ret.m_mutex_state.insert(make_pair(mutex, make_pair(unlocked, "")));
+      ret->m_mutex_state.insert(make_pair(mutex, make_pair(unlocked, "")));
     }
     for (auto const& proc : processes) {
-      ret.m_loc_state.insert(make_pair(proc.first, 0));
+      ret->m_loc_state.insert(make_pair(proc.first, 0));
     }
 
     return ret;
@@ -84,7 +77,7 @@ public:
 
     ss << "\tMUTEX_STATE:\n";
     for (auto const& p : m_mutex_state) {
-      ss << "\t\t" << p.first << " --> " << p.second.first << ", " << p.second.second << "\n";
+      ss << "\t\t" << p.first << " --> " << enum_mutex_to_string(p.second.first) << ", " << p.second.second << "\n";
     }
 
     ss << "\tLOC_STATE:\n";
@@ -98,29 +91,36 @@ public:
   // returns the next unique transaction to be executed by proc (may be enabled or disabled)
   instruction* get_process_next_transition(process* const& proc);
   unordered_set<process*> get_enabled_set(unordered_map<label, process*> const& all_procs);
-  state get_next_state(instruction* const& ins);
+  state* get_next_state(instruction* const& ins);
 };
 
 class transition
 {
 private:
-  state m_from_state;
+  state* m_from_state;
   instruction* m_action;
-  state m_to_state;
+  state* m_to_state;
 public:
   transition() {}
 
-  transition(state const& from, instruction* const& action, state const& to)
+  transition(state* const& from, instruction* const& action, state* const& to)
     : m_from_state(from), m_to_state(to)
   {
     m_action = action;
   }
+
+  state* get_from_state() const { return m_from_state; }
+  state* get_to_state() const { return m_to_state; }
+  instruction* get_action() const { return m_action; }
 };
 
 class dpor
 {
 private:
   concurrent_procs* m_data;
+  vector<state*> m_states;
+  vector<transition> m_transitions;
+  state* m_start_state;
 
 public:
   dpor() {}
@@ -130,7 +130,7 @@ public:
     m_data = all_procs;
   }
 
-  void test()
+  void initialize_with_start_state()
   {
     unordered_set<variable> shared_vars, mutex_vars;
     auto processes = m_data->get_processes();
@@ -138,8 +138,31 @@ public:
       unordered_set_union(shared_vars, m.second->get_shared_vars());
       unordered_set_union(mutex_vars, m.second->get_mutex_vars());
     }
-    state start = state::get_start_state(shared_vars, mutex_vars, m_data->get_processes());
-    cout << start.dump_string() << endl;
+    state* start = state::get_start_state(shared_vars, mutex_vars, m_data->get_processes());
+    cout << start->dump_string() << endl;
+    m_states.push_back(start);
+    m_start_state = start;
+  }
+
+  state* last_transition_sequence_state(vector<transition> const& S)
+  {
+    if (S.size() == 0) {
+      return m_start_state;
+    }
+    return S[S.size()-1].get_to_state();
+  }
+
+  state* find_state(state* const& s);
+  void dynamic_por();
+  void explore(vector<transition> &stack);
+
+  string get_stats()
+  {
+    stringstream ss;
+    ss << "NUM_STATES = " << m_states.size() << "\n";
+    ss << "NUM_TRANSITIONS = " << m_transitions.size() << "\n";
+
+    return ss.str();
   }
 };
 
